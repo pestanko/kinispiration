@@ -1,14 +1,12 @@
 package main
 
-import (
-	"fmt"
-	"net/http"
-)
+import "github.com/pestanko/kinispiration/kinspiration"
 
 func main() {
-	http.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Welcome to my website!")
-	})
-
+	config := kinspiration.Config{}
+	config.Init()
+	app := kinspiration.App{}
+	app.Init(&config)
+	app.Run(":3000")
 }
 
