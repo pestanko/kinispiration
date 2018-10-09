@@ -2,6 +2,7 @@ package kinspiration
 
 import (
 	"encoding/json"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"io/ioutil"
 	"log"
@@ -34,6 +35,7 @@ func (quotes *Quotes) Init(app *App) {
 }
 
 func (quotes *Quotes) ReadAllQuotes() {
+	log.Printf("Loading all quotes from: %s", quotes.FilePath())
 	jsonFile, err := os.Open(quotes.FilePath())
 	if err != nil {
 		log.Printf("%s", err)
@@ -45,6 +47,7 @@ func (quotes *Quotes) ReadAllQuotes() {
 }
 
 func (quotes *Quotes) WriteAllQuotes() {
+	log.Printf("Writing all quotes to: %s", quotes.FilePath())
 	marshal, _ := json.Marshal(quotes.Collection)
 	ioutil.WriteFile(quotes.FilePath(), marshal, 0644)
 }
@@ -59,6 +62,9 @@ func (quotes *Quotes) CreateQuote(w http.ResponseWriter, r *http.Request) {
 	var quote Quote
 	_ = json.NewDecoder(r.Body).Decode(&quote)
 	quote.ID = params["id"]
+	if quote.ID == "" {
+		quote.ID = uuid.New().String()
+	}
 	go quotes.AddQuote(quote)
 	w.WriteHeader(204)
 }

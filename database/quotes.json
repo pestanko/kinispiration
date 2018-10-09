@@ -1,1 +1,7 @@
-{}
+[
+  {
+    "id": "kontr_hello",
+    "body": "Some motivation",
+    "author": "kontr"
+  }
+]

@@ -1,9 +1,12 @@
 package kinspiration
 
 import (
+	"fmt"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"net/http/httptest"
+	"net/http/httputil"
 )
 
 type App struct {
@@ -24,7 +27,7 @@ func (a *App) Init(config *Config) {
 // setRouters sets the all required routers
 func (a *App) setRouters() {
 	// Routing for handling the projects
-	a.Quotes.RegisterQuotes(a)
+	a.Quotes.RegisterQuotes()
 }
 
 // Get wraps the router for GET method
@@ -48,4 +51,19 @@ func (a *App) Delete(path string, f func(w http.ResponseWriter, r *http.Request)
 }
 func (a *App) Run(host string) {
 	log.Fatal(http.ListenAndServe(host, a.Router))
+}
+
+
+func logHandler(fn http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		x, err := httputil.DumpRequest(r, true)
+		if err != nil {
+			http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
+			return
+		}
+		log.Println(fmt.Sprintf("%q", x))
+		rec := httptest.NewRecorder()
+		fn(rec, r)
+		log.Println(fmt.Sprintf("%q", rec.Body))
+	}
 }

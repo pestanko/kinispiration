@@ -7,5 +7,6 @@ type Config struct {
 }
 
 func (c *Config) Init() {
-	c.FilePath = os.Getenv("QUOTES_FILE")
+	quotesFile := os.Getenv("QUOTES_FILE")
+	c.FilePath = quotesFile
 }
