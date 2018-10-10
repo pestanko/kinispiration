@@ -61,11 +61,14 @@ func (quotes *Quotes) CreateQuote(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var quote Quote
 	_ = json.NewDecoder(r.Body).Decode(&quote)
-	quote.ID = params["id"]
-	if quote.ID == "" {
-		quote.ID = uuid.New().String()
-	}
-	go quotes.AddQuote(quote)
+	go quotes.AddQuote(quote, params["id"])
+	w.WriteHeader(204)
+}
+
+func (quotes *Quotes) CreateQuoteRandom(w http.ResponseWriter, r *http.Request) {
+	var quote Quote
+	_ = json.NewDecoder(r.Body).Decode(&quote)
+	go quotes.AddQuote(quote, "")
 	w.WriteHeader(204)
 }
 
@@ -80,14 +83,32 @@ func (quotes *Quotes) DeleteQuote(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(204)
 }
 
+func (quotes *Quotes) ImportQuotes(w http.ResponseWriter, r *http.Request) {
+	var quoteList []Quote
+	_ = json.NewDecoder(r.Body).Decode(&quoteList)
+
+	for _, quote := range quoteList {
+		quotes.AddQuote(quote, "")
+	}
+
+	w.WriteHeader(200)
+	json.NewEncoder(w).Encode(quotes.Collection)
+}
+
 func (quotes *Quotes) RegisterQuotes() {
 	quotes.App.Get("/quotes", quotes.GetAllQuotes)
 	quotes.App.Post("/quotes/{id}", quotes.CreateQuote)
+	quotes.App.Post("/quotes", quotes.CreateQuoteRandom)
 	quotes.App.Delete("/quotes/{id}", quotes.DeleteQuote)
 	quotes.App.Get("/random", quotes.GetRandomQuote)
+	quotes.App.Post("/import", quotes.ImportQuotes)
 }
 
-func (quotes *Quotes) AddQuote(quote Quote) {
+func (quotes *Quotes) AddQuote(quote Quote, id string) {
+	if id == "" {
+		id = uuid.New().String()
+	}
+	quote.ID = id
 	quotes.Collection = append(quotes.Collection, quote)
 	quotes.WriteAllQuotes()
 }
