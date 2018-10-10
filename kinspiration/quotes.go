@@ -42,7 +42,7 @@ func (quotes *Quotes) Init(app *App) {
 }
 
 func (quotes *Quotes) ReadAllQuotes() {
-	log.Printf("Loading all quotes from: %s", quotes.FilePath())
+	log.Printf("[QUOTES] Loading all quotes from: %s", quotes.FilePath())
 	os.OpenFile(quotes.FilePath(), os.O_RDONLY|os.O_CREATE, 0666)
 	jsonFile, err := os.Open(quotes.FilePath())
 	if err != nil {
@@ -55,7 +55,7 @@ func (quotes *Quotes) ReadAllQuotes() {
 }
 
 func (quotes *Quotes) WriteAllQuotes() {
-	log.Printf("Writing all quotes to: %s", quotes.FilePath())
+	log.Printf("[QUOTES] Writing all quotes to: %s", quotes.FilePath())
 	marshal, _ := json.MarshalIndent(quotes.Collection, "", "  ")
 	ioutil.WriteFile(quotes.FilePath(), marshal, 0644)
 }
