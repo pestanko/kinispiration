@@ -7,6 +7,6 @@ func main() {
 	config.Init()
 	app := kinspiration.App{}
 	app.Init(&config)
-	app.Run(":3000")
+	app.Run()
 }
 

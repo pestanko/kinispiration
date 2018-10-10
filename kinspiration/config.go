@@ -6,8 +6,9 @@ import (
 )
 
 type Config struct {
-	QuotesPath string
-	AdminToken string
+	QuotesPath 	string
+	AdminToken 	string
+	Host 		string
 }
 
 func (c *Config) setAdminToken() {
@@ -33,7 +34,22 @@ func (c *Config) setQuotesFile() {
 	c.QuotesPath = quotesFile
 }
 
+func (c *Config) setHost() {
+	quotesHost := os.Getenv("QUOTES_HOST")
+
+	if quotesHost == "" {
+		quotesHost = ":3000"
+		log.Printf("[CONFIG] Quotes host has not been set, using the default: %s", quotesHost)
+	} else {
+		log.Printf("[CONFIG] Quotes database has been set: %s", quotesHost)
+	}
+
+	c.Host = quotesHost
+}
+
+
 func (c *Config) Init() {
 	c.setAdminToken()
 	c.setQuotesFile()
+	c.setHost()
 }

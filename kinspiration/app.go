@@ -61,6 +61,6 @@ func (a *App) handleLogFunc(f func(w http.ResponseWriter, r *http.Request)) http
 	return  handlers.CombinedLoggingHandler(os.Stderr, funcHandler)
 }
 
-func (a *App) Run(host string) {
-	log.Fatal(http.ListenAndServe(host, a.Router))
+func (a *App) Run() {
+	log.Fatal(http.ListenAndServe(a.Config.Host, a.Router))
 }
