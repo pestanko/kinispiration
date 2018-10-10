@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"io"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -21,6 +22,12 @@ type Quote struct {
 type Quotes struct {
 	Collection []Quote
 	App        *App
+}
+
+func JSONWrite(w io.Writer, obj interface{}) {
+	encoder := json.NewEncoder(w)
+	encoder.SetIndent("", "  ")
+	encoder.Encode(obj)
 }
 
 func (quotes *Quotes) FilePath() string {
@@ -53,34 +60,36 @@ func (quotes *Quotes) WriteAllQuotes() {
 	ioutil.WriteFile(quotes.FilePath(), marshal, 0644)
 }
 
+
 func (quotes *Quotes) GetAllQuotes(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
-	json.NewEncoder(w).Encode(quotes.Collection)
+	JSONWrite(w, quotes.Collection)
 }
+
 
 func (quotes *Quotes) CreateQuote(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var quote Quote
 	_ = json.NewDecoder(r.Body).Decode(&quote)
-	go quotes.AddQuote(quote, params["id"], true)
-	w.WriteHeader(204)
+	quotes.AddQuote(quote, params["id"], true)
+	JSONWrite(w, quote)
 }
 
 func (quotes *Quotes) CreateQuoteRandom(w http.ResponseWriter, r *http.Request) {
 	var quote Quote
 	_ = json.NewDecoder(r.Body).Decode(&quote)
-	go quotes.AddQuote(quote, "", true)
-	w.WriteHeader(204)
+	quotes.AddQuote(quote, "", true)
+	JSONWrite(w, quote)
 }
 
 func (quotes *Quotes) GetRandomQuote(w http.ResponseWriter, r *http.Request) {
-	randomQuote := quotes.Collection[rand.Intn(len(quotes.Collection))]
-	json.NewEncoder(w).Encode(randomQuote)
+	quote := quotes.Collection[rand.Intn(len(quotes.Collection))]
+	JSONWrite(w, quote)
 }
 
 func (quotes *Quotes) DeleteQuote(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	go quotes.DelQuote(params["id"])
+	quotes.DelQuote(params["id"])
 	w.WriteHeader(204)
 }
 
@@ -93,9 +102,8 @@ func (quotes *Quotes) ImportQuotes(w http.ResponseWriter, r *http.Request) {
 	}
 
 	quotes.WriteAllQuotes()
-
 	w.WriteHeader(200)
-	json.NewEncoder(w).Encode(quotes.Collection)
+	JSONWrite(w, quotes.Collection)
 }
 
 func (quotes *Quotes) RegisterQuotes() {

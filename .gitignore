@@ -60,3 +60,5 @@ fabric.properties
 
 # Database dictionary
 database/
+
+quotes.json
