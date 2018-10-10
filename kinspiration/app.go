@@ -1,12 +1,11 @@
 package kinspiration
 
 import (
-	"fmt"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	"net/http/httptest"
-	"net/http/httputil"
+	"os"
 )
 
 type App struct {
@@ -32,38 +31,33 @@ func (a *App) setRouters() {
 
 // Get wraps the router for GET method
 func (a *App) Get(path string, f func(w http.ResponseWriter, r *http.Request)) {
-	a.Router.HandleFunc(path, f).Methods("GET")
+	logHandler := a._HandleLogFunc(f)
+	a.Router.Handle(path, logHandler).Methods("GET")
 }
 
 // Post wraps the router for POST method
 func (a *App) Post(path string, f func(w http.ResponseWriter, r *http.Request)) {
-	a.Router.HandleFunc(path, f).Methods("POST")
+	logHandler := a._HandleLogFunc(f)
+	a.Router.Handle(path, logHandler).Methods("POST")
 }
 
 // Put wraps the router for PUT method
 func (a *App) Put(path string, f func(w http.ResponseWriter, r *http.Request)) {
-	a.Router.HandleFunc(path, f).Methods("PUT")
+	logHandler := a._HandleLogFunc(f)
+	a.Router.Handle(path, logHandler).Methods("PUT")
 }
 
 // Delete wraps the router for DELETE method
 func (a *App) Delete(path string, f func(w http.ResponseWriter, r *http.Request)) {
-	a.Router.HandleFunc(path, f).Methods("DELETE")
+	logHandler := a._HandleLogFunc(f)
+	a.Router.Handle(path, logHandler).Methods("DELETE")
 }
+
+func (a *App) _HandleLogFunc(f func(w http.ResponseWriter, r *http.Request)) http.Handler {
+	funcHandler := http.HandlerFunc(f)
+	return  handlers.CombinedLoggingHandler(os.Stderr, funcHandler)
+}
+
 func (a *App) Run(host string) {
 	log.Fatal(http.ListenAndServe(host, a.Router))
-}
-
-
-func logHandler(fn http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		x, err := httputil.DumpRequest(r, true)
-		if err != nil {
-			http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
-			return
-		}
-		log.Println(fmt.Sprintf("%q", x))
-		rec := httptest.NewRecorder()
-		fn(rec, r)
-		log.Println(fmt.Sprintf("%q", rec.Body))
-	}
 }
