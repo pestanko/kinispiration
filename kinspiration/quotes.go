@@ -14,7 +14,7 @@ import (
 
 type Quote struct {
 	ID     string `json:"id,omitempty"`
-	Body   string `json:"body,omitempty"`
+	Body   string `json:"quote,omitempty"`
 	Author string `json:"author,omitempty"`
 }
 
@@ -24,7 +24,7 @@ type Quotes struct {
 }
 
 func (quotes *Quotes) FilePath() string {
-	return quotes.App.Config.FilePath
+	return quotes.App.Config.QuotesPath
 }
 
 func (quotes *Quotes) Init(app *App) {
@@ -36,6 +36,7 @@ func (quotes *Quotes) Init(app *App) {
 
 func (quotes *Quotes) ReadAllQuotes() {
 	log.Printf("Loading all quotes from: %s", quotes.FilePath())
+	os.OpenFile(quotes.FilePath(), os.O_RDONLY|os.O_CREATE, 0666)
 	jsonFile, err := os.Open(quotes.FilePath())
 	if err != nil {
 		log.Printf("%s", err)
@@ -61,14 +62,14 @@ func (quotes *Quotes) CreateQuote(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	var quote Quote
 	_ = json.NewDecoder(r.Body).Decode(&quote)
-	go quotes.AddQuote(quote, params["id"])
+	go quotes.AddQuote(quote, params["id"], true)
 	w.WriteHeader(204)
 }
 
 func (quotes *Quotes) CreateQuoteRandom(w http.ResponseWriter, r *http.Request) {
 	var quote Quote
 	_ = json.NewDecoder(r.Body).Decode(&quote)
-	go quotes.AddQuote(quote, "")
+	go quotes.AddQuote(quote, "", true)
 	w.WriteHeader(204)
 }
 
@@ -88,8 +89,10 @@ func (quotes *Quotes) ImportQuotes(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&quoteList)
 
 	for _, quote := range quoteList {
-		quotes.AddQuote(quote, "")
+		quotes.AddQuote(quote, "", false)
 	}
+
+	quotes.WriteAllQuotes()
 
 	w.WriteHeader(200)
 	json.NewEncoder(w).Encode(quotes.Collection)
@@ -104,13 +107,15 @@ func (quotes *Quotes) RegisterQuotes() {
 	quotes.App.Post("/import", quotes.ImportQuotes)
 }
 
-func (quotes *Quotes) AddQuote(quote Quote, id string) {
+func (quotes *Quotes) AddQuote(quote Quote, id string, save bool) {
 	if id == "" {
 		id = uuid.New().String()
 	}
 	quote.ID = id
 	quotes.Collection = append(quotes.Collection, quote)
-	quotes.WriteAllQuotes()
+	if save {
+		quotes.WriteAllQuotes()
+	}
 }
 
 func (quotes *Quotes) DelQuote(id string) {
