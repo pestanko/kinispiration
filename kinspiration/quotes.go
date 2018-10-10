@@ -49,7 +49,7 @@ func (quotes *Quotes) ReadAllQuotes() {
 
 func (quotes *Quotes) WriteAllQuotes() {
 	log.Printf("Writing all quotes to: %s", quotes.FilePath())
-	marshal, _ := json.Marshal(quotes.Collection)
+	marshal, _ := json.MarshalIndent(quotes.Collection, "", "  ")
 	ioutil.WriteFile(quotes.FilePath(), marshal, 0644)
 }
 
