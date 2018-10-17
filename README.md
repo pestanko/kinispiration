@@ -2,6 +2,8 @@
 
 The inspirational quotes for the Kontr developed in Go.
 
+[![Maintainability](https://api.codeclimate.com/v1/badges/2d2631807bb47d183ce8/maintainability)](https://codeclimate.com/github/pestanko/kinispiration/maintainability)
+
 ## Installation
 
 Here are the installation instactions how to install and build from scratch
